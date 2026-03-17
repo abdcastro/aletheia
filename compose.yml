@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: aletheia_backend_api
+    ports:
+      - "8000:8000"
+    volumes:
+      # This maps your local ./app folder to the container's /code/app folder.
+      # It allows for live-reloading as you write code.
+      - ./app:/code/app
+    environment:
+      - ENVIRONMENT=development
+      # Future integration: Add your Astraea network database URL here
+      # - DATABASE_URL=postgresql://user:password@db:5432/aletheia
