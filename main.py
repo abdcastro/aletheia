@@ -3,10 +3,19 @@ from pydantic import BaseModel
 from datetime import datetime
 from app.utils.crypto import generate_sha256_hash
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(
     title="Aletheia API",
     description="The secure backend for Aletheia True Media Capture.",
     version="1.0.0"
+    app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins for demo purposes
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods (POST, GET, etc.)
+    allow_headers=["*"],
+)
 )
 
 # Mock database for storing metadata records
