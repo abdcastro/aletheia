@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aletheia | True Capture Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #EEE7E2;
+            color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            font-family: serif;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .btn {
+            border: 2px solid #000;
+            color: #000;
+            background-color: transparent;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .btn:hover { background-color: #000; color: #fff; }
+        .upload-btn-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        #submit-btn {
+            background-color: #000;
+            color: #fff;
+            margin-bottom: 20px;
+            display: none;
+        }
+        #submit-btn:hover { background-color: #333; }
+        .terminal {
+            background-color: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            text-align: left;
+            display: none;
+            word-wrap: break-word;
+        }
+        .terminal span { color: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logo">Aletheia <●></div>
+    <div class="subtitle">Secure Media Capture Client (Web Demo)</div>
+
+    <form id="capture-form">
+        <div class="upload-btn-wrapper">
+            <button class="btn" id="file-label">1. Select Evidence Image</button>
+            <input type="file" id="media-file" name="file" accept="image/*" required />
+        </div>
+        
+        <button type="button" class="btn" id="submit-btn">2. Secure & Hash Data</button>
+    </form>
+
+    <div class="terminal" id="result-terminal">
+        > INITIALIZING SECURE CAPTURE...<br>
+        > WAITING FOR SERVER...
+    </div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('media-file');
+    const fileLabel = document.getElementById('file-label');
+    const submitBtn = document.getElementById('submit-btn');
+    const terminal = document.getElementById('result-terminal');
+
+    fileInput.addEventListener('change', function(e) {
+        if(e.target.files.length > 0) {
+            fileLabel.innerText = "Selected: " + e.target.files[0].name;
+            submitBtn.style.display = "block";
+        }
+    });
+
+    submitBtn.addEventListener('click', async function() {
+        terminal.style.display = "block";
+        submitBtn.innerText = "Securing...";
+        
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        // Mocking the metadata that the real app would generate
+        formData.append('gps_coordinates', '38.8951 N, 77.0364 W'); 
+        formData.append('device_id', 'WEB_DEMO_CLIENT_01');
+
+        try {
+            const response = await fetch('http://localhost:8000/api/v1/capture', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            terminal.innerHTML = `
+                > <span>STATUS:</span> <span style="color:#0f0">[SECURE]</span><br><br>
+                > <span>RECORD ID:</span><br>${data.record_id}<br><br>
+                > <span>SHA-256 HASH:</span><br>${data.sha256_hash}<br><br>
+                > <span>CHAIN OF CUSTODY:</span> ESTABLISHED
+            `;
+            submitBtn.innerText = "Verified.";
+        } catch (error) {
+            terminal.innerHTML = `<span style="color:red">> ERROR: CONNECTION REFUSED. Ensure backend is running.</span>`;
+            submitBtn.innerText = "Capture Failed";
+        }
+    });
+</script>
+
+</body>
+</html>
